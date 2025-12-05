@@ -1,0 +1,399 @@
+================================================================================
+                    SUPPLY CHAIN MANAGEMENT SYSTEM
+                        Installation Guide
+                    Step-by-Step Instructions
+================================================================================
+
+PREREQUISITES:
+- Windows Operating System
+- XAMPP installed (Apache + MySQL + PHP)
+- Web browser (Chrome, Firefox, Edge)
+- Basic knowledge of SQL and PHP
+
+================================================================================
+                        INSTALLATION STEPS
+================================================================================
+
+STEP 1: INSTALL XAMPP
+----------------------
+1. Download XAMPP from: https://www.apachefriends.org/
+2. Run the installer
+3. Install to default location: C:\xampp
+4. Complete the installation wizard
+
+STEP 2: START XAMPP SERVICES
+-----------------------------
+1. Open XAMPP Control Panel (Run as Administrator)
+2. Click "Start" button next to Apache
+3. Click "Start" button next to MySQL
+4. Wait for both services to show green "Running" status
+5. If ports are busy, see TROUBLESHOOTING section below
+
+STEP 3: ACCESS phpMyAdmin
+--------------------------
+1. Open your web browser
+2. Navigate to: http://localhost/phpmyadmin
+3. You should see the phpMyAdmin interface
+4. Default login: username = root, password = (leave blank)
+
+STEP 4: CREATE DATABASE
+------------------------
+METHOD 1 - Using Complete SQL File (RECOMMENDED):
+1. In phpMyAdmin, click "SQL" tab at the top
+2. Open the file: COMPLETE_SQL_FILE.sql
+3. Copy ALL content from the file
+4. Paste into the SQL query box
+5. Click "Go" button at the bottom
+6. Wait for "Query executed successfully" message
+7. Click "supply_chain_db" in left sidebar to verify tables
+
+METHOD 2 - Using Individual Files:
+1. Click "SQL" tab in phpMyAdmin
+2. Copy content from database_schema.sql
+3. Click "Go" to create tables
+4. Copy content from sample_data.sql
+5. Click "Go" to insert data
+6. Copy content from sql_queries.sql
+7. Click "Go" to create views, procedures, triggers
+
+STEP 5: VERIFY DATABASE CREATION
+---------------------------------
+1. In phpMyAdmin left sidebar, you should see "supply_chain_db"
+2. Click on it to expand
+3. Verify these 7 tables exist:
+   ✓ admins
+   ✓ inventory
+   ✓ products
+   ✓ purchase_orders
+   ✓ shipments
+   ✓ suppliers
+   ✓ warehouses
+4. Click on any table to view sample data
+
+STEP 6: SETUP PHP APPLICATION
+------------------------------
+1. Open File Explorer
+2. Navigate to: C:\xampp\htdocs\
+3. Create new folder: "supplychain"
+   Full path: C:\xampp\htdocs\supplychain\
+4. Copy ALL contents from "php_files" folder to this location
+5. Your structure should look like:
+   C:\xampp\htdocs\supplychain\
+   ├── index.php
+   ├── test_connection.php
+   ├── config\
+   ├── includes\
+   ├── admin\
+   ├── suppliers\
+   ├── inventory\
+   └── orders\
+
+STEP 7: TEST DATABASE CONNECTION
+---------------------------------
+1. Open web browser
+2. Navigate to: http://localhost/supplychain/test_connection.php
+3. You should see: "Database Connected Successfully!"
+4. If you see an error, check TROUBLESHOOTING section
+
+STEP 8: ACCESS THE APPLICATION
+-------------------------------
+1. Open web browser
+2. Navigate to: http://localhost/supplychain/
+3. You will be redirected to login page
+4. Enter credentials:
+   Username: admin
+   Password: admin123
+5. Click "Login" button
+6. You should see the dashboard with statistics
+
+STEP 9: VERIFY APPLICATION FEATURES
+------------------------------------
+Test each module:
+
+1. DASHBOARD:
+   - Should show supplier count, product count, inventory value
+   - Should display recent orders table
+
+2. SUPPLIERS:
+   - Click "Suppliers" in navigation
+   - Should see list of 8 suppliers
+   - Click "Add New Supplier" to test form
+   - Click "Edit" on any supplier to test update
+
+3. INVENTORY:
+   - Click "Inventory" in navigation
+   - Should see inventory across warehouses
+   - Stock status should show (Low/Medium/Good)
+   - Click "Update Inventory" to test add/remove stock
+   - Click "Low Stock Alert" to see products below reorder level
+
+4. ORDERS:
+   - Click "Orders" in navigation
+   - Should see list of purchase orders
+   - Click "Create New Order" to test order creation
+   - Verify order appears in list
+
+5. LOGOUT:
+   - Click "Logout" in navigation
+   - Should return to login page
+   - Session should be cleared
+
+STEP 10: TEST SQL QUERIES
+--------------------------
+1. Go back to phpMyAdmin
+2. Select "supply_chain_db" database
+3. Click "SQL" tab
+4. Test these queries:
+
+Query 1 - View Inventory Summary:
+SELECT * FROM vw_product_inventory_summary;
+
+Query 2 - Get Low Stock Products:
+CALL sp_get_low_stock_products();
+
+Query 3 - Active Orders:
+SELECT * FROM vw_active_orders;
+
+Query 4 - Supplier Performance:
+SELECT s.supplier_name, COUNT(po.order_id) as orders, 
+       SUM(po.total_amount) as total_value
+FROM suppliers s
+LEFT JOIN purchase_orders po ON s.supplier_id = po.supplier_id
+GROUP BY s.supplier_id
+ORDER BY total_value DESC;
+
+Query 5 - Warehouse Utilization:
+SELECT * FROM vw_warehouse_utilization;
+
+All queries should execute without errors.
+
+================================================================================
+                        TROUBLESHOOTING
+================================================================================
+
+PROBLEM 1: Apache Won't Start - Port 80 Already in Use
+-------------------------------------------------------
+SOLUTION:
+1. Open XAMPP Control Panel
+2. Click "Config" button next to Apache
+3. Select "Apache (httpd.conf)"
+4. Find line: Listen 80
+5. Change to: Listen 8080
+6. Save file and close
+7. Click "Config" again → "Apache (httpd-ssl.conf)"
+8. Find line: Listen 443
+9. Change to: Listen 4433
+10. Save and restart Apache
+11. Access application via: http://localhost:8080/supplychain/
+
+PROBLEM 2: MySQL Won't Start - Port 3306 Already in Use
+--------------------------------------------------------
+SOLUTION:
+1. Open XAMPP Control Panel
+2. Click "Config" button next to MySQL
+3. Select "my.ini"
+4. Find line: port=3306
+5. Change to: port=3307
+6. Save file and close
+7. Restart MySQL
+8. Update database connection:
+   - Open: C:\xampp\htdocs\supplychain\config\database.php
+   - Change: define('DB_SERVER', 'localhost');
+   - To: define('DB_SERVER', 'localhost:3307');
+   - Save file
+
+PROBLEM 3: "Access Denied for user 'root'@'localhost'"
+-------------------------------------------------------
+SOLUTION:
+1. Open phpMyAdmin
+2. Click "User accounts" tab
+3. Find user "root" with host "localhost"
+4. Click "Edit privileges"
+5. Click "Change password"
+6. Set a password or select "No password"
+7. Click "Go"
+8. Update config/database.php:
+   - Change: define('DB_PASSWORD', '');
+   - To: define('DB_PASSWORD', 'your_password');
+
+PROBLEM 4: "Table 'supply_chain_db.suppliers' doesn't exist"
+-------------------------------------------------------------
+SOLUTION:
+1. Database not created properly
+2. Go to phpMyAdmin
+3. Run COMPLETE_SQL_FILE.sql again
+4. Verify all tables are created
+5. Refresh application
+
+PROBLEM 5: CSS Not Loading / Page Looks Broken
+-----------------------------------------------
+SOLUTION:
+1. Check folder structure is correct
+2. Verify files are in: C:\xampp\htdocs\supplychain\
+3. Clear browser cache (Ctrl + Shift + Delete)
+4. Hard refresh page (Ctrl + F5)
+5. Check browser console for errors (F12)
+
+PROBLEM 6: "Cannot modify header information"
+----------------------------------------------
+SOLUTION:
+1. Open the PHP file showing error
+2. Ensure no whitespace before <?php tag
+3. Ensure no whitespace after ?> tag
+4. Save file with UTF-8 encoding (no BOM)
+
+PROBLEM 7: phpMyAdmin Not Accessible
+-------------------------------------
+SOLUTION:
+1. Ensure MySQL is running in XAMPP
+2. Try: http://127.0.0.1/phpmyadmin
+3. Check httpd-xampp.conf for phpMyAdmin alias
+4. Restart Apache service
+
+PROBLEM 8: "Call to undefined function mysqli_connect()"
+---------------------------------------------------------
+SOLUTION:
+1. Open php.ini file (XAMPP Control → Apache Config → php.ini)
+2. Find line: ;extension=mysqli
+3. Remove semicolon: extension=mysqli
+4. Save file
+5. Restart Apache
+
+PROBLEM 9: Session Not Working / Auto Logout
+---------------------------------------------
+SOLUTION:
+1. Check session.save_path in php.ini
+2. Ensure C:\xampp\tmp folder exists
+3. Give write permissions to tmp folder
+4. Restart Apache
+
+PROBLEM 10: Stored Procedures Not Working
+------------------------------------------
+SOLUTION:
+1. In phpMyAdmin, select supply_chain_db
+2. Click "Routines" tab
+3. Verify procedures are listed
+4. If not, run sql_queries.sql again
+5. Ensure DELIMITER is properly set
+
+================================================================================
+                        VERIFICATION CHECKLIST
+================================================================================
+
+Before proceeding, verify:
+
+XAMPP Setup:
+□ XAMPP installed successfully
+□ Apache service running (green in control panel)
+□ MySQL service running (green in control panel)
+□ phpMyAdmin accessible at http://localhost/phpmyadmin
+
+Database Setup:
+□ Database "supply_chain_db" created
+□ All 7 tables visible in phpMyAdmin
+□ Sample data inserted (check any table)
+□ Views created (check Routines tab)
+□ Stored procedures created (check Routines tab)
+□ Triggers created (check Triggers tab)
+
+Application Setup:
+□ Files copied to C:\xampp\htdocs\supplychain\
+□ Folder structure is correct
+□ config/database.php exists
+□ Test connection page works
+□ Login page accessible
+
+Functionality:
+□ Can login with admin/admin123
+□ Dashboard displays statistics
+□ Can view suppliers
+□ Can add new supplier
+□ Can edit supplier
+□ Can view inventory
+□ Can update inventory
+□ Can view orders
+□ Can create order
+□ Can logout successfully
+
+SQL Testing:
+□ All SELECT queries work
+□ Views return data
+□ Stored procedures execute
+□ Triggers are active
+□ No SQL errors in phpMyAdmin
+
+================================================================================
+                        POST-INSTALLATION
+================================================================================
+
+SECURITY RECOMMENDATIONS:
+1. Change default admin password
+2. Set MySQL root password
+3. Disable phpMyAdmin in production
+4. Use prepared statements for queries
+5. Enable HTTPS for production
+
+BACKUP RECOMMENDATIONS:
+1. Backup database regularly
+2. Export SQL from phpMyAdmin
+3. Keep backup of php_files folder
+4. Document any customizations
+
+PERFORMANCE OPTIMIZATION:
+1. Enable query caching in MySQL
+2. Add more indexes if needed
+3. Optimize slow queries
+4. Monitor server resources
+
+NEXT STEPS:
+1. Explore all features
+2. Test with different user roles
+3. Try all SQL queries
+4. Prepare for viva presentation
+5. Document any issues found
+
+================================================================================
+                        SUPPORT & RESOURCES
+================================================================================
+
+Documentation Files:
+- README.md - Main documentation
+- QUICK_REFERENCE.md - Quick commands
+- PROJECT_DOCUMENTATION.md - Detailed description
+- XAMPP_IMPLEMENTATION_GUIDE.md - Setup guide
+- FINAL_DELIVERABLES.md - Viva preparation
+
+Useful Links:
+- XAMPP Documentation: https://www.apachefriends.org/docs/
+- PHP Manual: https://www.php.net/manual/
+- MySQL Documentation: https://dev.mysql.com/doc/
+
+Common Commands:
+- Start XAMPP: Open XAMPP Control Panel
+- Access phpMyAdmin: http://localhost/phpmyadmin
+- Access Application: http://localhost/supplychain/
+- Test Connection: http://localhost/supplychain/test_connection.php
+
+================================================================================
+                        INSTALLATION COMPLETE!
+================================================================================
+
+If all steps completed successfully:
+✅ Database is created and populated
+✅ Application is accessible
+✅ All features are working
+✅ Ready for demonstration
+
+You can now:
+1. Explore the application
+2. Test all features
+3. Run SQL queries
+4. Prepare for viva
+5. Demonstrate to instructor
+
+Good luck with your project! 🎓
+
+================================================================================
+Last Updated: November 2024
+Version: 1.0
+================================================================================
